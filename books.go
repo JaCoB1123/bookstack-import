@@ -14,14 +14,14 @@ type book struct {
 }
 
 func (client bookStackClient) GetBooks() (*booksResponse, error) {
-	booksResp, err := client.R().
+	resp, err := client.R().
 		SetResult(booksResponse{}).
 		Get("/api/books")
 	if err != nil {
 		return nil, fmt.Errorf("get of books: %w", err)
 	}
 
-	return booksResp.Result().(*booksResponse), nil
+	return resp.Result().(*booksResponse), nil
 }
 
 func (client bookStackClient) CreateBook(name string) (*book, error) {
