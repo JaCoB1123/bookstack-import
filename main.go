@@ -129,13 +129,13 @@ func main() {
 
 		path := fullPath[len(importPath)+1:]
 
-		segments := strings.Split(path, "\\")
+		segments := strings.FieldsFunc(path, IsDirSeparator)
 
 		log.Println(path)
 
 		book := imp.GetBook(segments[0])
 		chapter := imp.GetChapter(segments[1], book.ID)
-		pageName := strings.Join(segments[2:], "\\")
+		pageName := strings.Join(segments[2:], "/")
 
 		content, err := ioutil.ReadFile(fullPath)
 		if err != nil {
@@ -149,4 +149,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func IsDirSeparator(r rune) bool {
+	return r == '\\' || r == '/'
 }
