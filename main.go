@@ -127,6 +127,10 @@ func main() {
 			return nil
 		}
 
+		if !strings.HasSuffix(fullPath, ".md") {
+			return nil
+		}
+
 		path := fullPath[len(importPath)+1:]
 
 		segments := strings.FieldsFunc(path, IsDirSeparator)
