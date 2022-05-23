@@ -105,20 +105,8 @@ func (imp bookstackImport) GetPage(name string, bookID int, chapterID int, conte
 	return page
 }
 
-func main() {
-	url := os.Getenv("BOOKSTACK_URL")
-	tokenID := os.Getenv("BOOKSTACK_TOKEN_ID")
-	tokenSecret := os.Getenv("BOOKSTACK_TOKEN_SECRET")
-	importPath := os.Getenv("BOOKSTACK_IMPORT_PATH")
-
-	client, err := NewBookStackClient(url, tokenID, tokenSecret)
-	if err != nil {
-		panic(err)
-	}
-
-	imp := NewImport(client)
-
-	err = filepath.WalkDir(importPath, func(fullPath string, info fs.DirEntry, err error) error {
+func (imp bookstackImport) ImportFolder(importPath string) error {
+	return filepath.WalkDir(importPath, func(fullPath string, info fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -132,10 +120,7 @@ func main() {
 		}
 
 		path := fullPath[len(importPath)+1:]
-
 		segments := strings.FieldsFunc(path, IsDirSeparator)
-
-		log.Println(path)
 
 		book := imp.GetBook(segments[0])
 		chapter := imp.GetChapter(segments[1], book.ID)
@@ -149,6 +134,21 @@ func main() {
 		imp.GetPage(pageName, book.ID, chapter.ID, content)
 		return nil
 	})
+}
+
+func main() {
+	url := os.Getenv("BOOKSTACK_URL")
+	tokenID := os.Getenv("BOOKSTACK_TOKEN_ID")
+	tokenSecret := os.Getenv("BOOKSTACK_TOKEN_SECRET")
+	importPath := os.Getenv("BOOKSTACK_IMPORT_PATH")
+
+	client, err := NewBookStackClient(url, tokenID, tokenSecret)
+	if err != nil {
+		panic(err)
+	}
+
+	imp := NewImport(client)
+	err = imp.ImportFolder(importPath)
 
 	if err != nil {
 		panic(err)
