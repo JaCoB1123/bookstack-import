@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"strconv"
 )
 
@@ -43,7 +42,6 @@ func (client bookStackClient) CreatePage(bookID, chapterID int, name string, con
 	if err != nil {
 		return nil, fmt.Errorf("create page: %w", err)
 	}
-	log.Println(resp)
 	return resp.Result().(*page), nil
 }
 
@@ -60,6 +58,5 @@ func (client bookStackClient) UpdatePageContent(pageID int, content []byte) (*pa
 	if err != nil {
 		return nil, fmt.Errorf("update page: %w", err)
 	}
-	log.Println(resp)
 	return resp.Result().(*page), nil
 }
