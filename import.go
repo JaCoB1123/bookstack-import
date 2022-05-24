@@ -111,6 +111,9 @@ func (imp bookstackImport) ImportFolder(importPath string) error {
 		}
 
 		if info.IsDir() {
+			if info.Name() == "media" || info.Name() == "docx" {
+				return filepath.SkipDir
+			}
 			return nil
 		}
 
