@@ -44,7 +44,7 @@ func NewImport(client *bookStackClient) *bookstackImport {
 	return imp
 }
 
-func (imp bookstackImport) GetBook(name string) *book {
+func (imp *bookstackImport) GetBook(name string) *book {
 	matchingBookIndex := slices.IndexFunc(imp.Books, func(b book) bool { return b.Name == name })
 	if matchingBookIndex == -1 {
 		log.Println("Creating new book", name)
@@ -61,7 +61,7 @@ func (imp bookstackImport) GetBook(name string) *book {
 	return &imp.Books[matchingBookIndex]
 }
 
-func (imp bookstackImport) GetChapter(name string, bookID int) *chapter {
+func (imp *bookstackImport) GetChapter(name string, bookID int) *chapter {
 	matchingChapterIndex := slices.IndexFunc(imp.Chapters, func(b chapter) bool { return b.Name == name && b.BookID == bookID })
 	if matchingChapterIndex == -1 {
 		log.Println("Creating new chapter", name)
@@ -79,7 +79,7 @@ func (imp bookstackImport) GetChapter(name string, bookID int) *chapter {
 	return &imp.Chapters[matchingChapterIndex]
 }
 
-func (imp bookstackImport) GetPage(name string, bookID int, chapterID int, content []byte) *page {
+func (imp *bookstackImport) GetPage(name string, bookID int, chapterID int, content []byte) *page {
 	matchingPageIndex := slices.IndexFunc(imp.Pages, func(b page) bool {
 		return b.Name == name && b.BookID == bookID && b.ChapterID == chapterID
 	})
@@ -104,7 +104,7 @@ func (imp bookstackImport) GetPage(name string, bookID int, chapterID int, conte
 	return page
 }
 
-func (imp bookstackImport) ImportFolder(importPath string) error {
+func (imp *bookstackImport) ImportFolder(importPath string) error {
 	return filepath.WalkDir(importPath, func(fullPath string, info fs.DirEntry, err error) error {
 		if err != nil {
 			return err
