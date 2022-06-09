@@ -10,13 +10,26 @@ type bookStackClient struct {
 	*resty.Client
 }
 
-func NewBookStackClient(url, tokenID, tokenSecret string) (*bookStackClient, error) {
-	if url == "" || tokenID == "" || tokenSecret == "" {
+type httpErrorResponse struct {
+	Error httpError `json:"error"`
+}
+type httpError struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+}
+
+func (err httpError) Error() string {
+	return "HTTP Error"
+}
+
+func NewBookStackClient(path, tokenID, tokenSecret string) (*bookStackClient, error) {
+	if path == "" || tokenID == "" || tokenSecret == "" {
 		return nil, fmt.Errorf("URL, Token-ID and Token-Secret have to be specified")
 	}
 
 	client := resty.New()
-	client.SetBaseURL(url)
+	client.SetError(httpErrorResponse{})
+	client.SetBaseURL(path)
 	client.SetHeader("Authorization", "Token "+tokenID+":"+tokenSecret)
 
 	_, err := client.R().Get("/api/docs.json")
