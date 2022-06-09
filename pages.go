@@ -28,7 +28,7 @@ func (client bookStackClient) GetPages() (*pagesResponse, error) {
 		SetResult(pagesResponse{}).
 		Get("/api/pages")
 	if err != nil || resp.StatusCode() > 399 {
-		return nil, fmt.Errorf("get of pagers: %w", err)
+		return nil, fmt.Errorf("get of pagers: %s", resp)
 	}
 
 	return resp.Result().(*pagesResponse), nil
@@ -43,7 +43,7 @@ func (client bookStackClient) CreatePage(chapterID int, name string, content []b
 		SetResult(page{}).
 		Post("/api/pages")
 	if err != nil || resp.StatusCode() > 399 {
-		return nil, fmt.Errorf("create page: %w", err)
+		return nil, fmt.Errorf("create page: %s", resp)
 	}
 	return resp.Result().(*page), nil
 }
@@ -59,7 +59,7 @@ func (client bookStackClient) UpdatePageContent(pageID int, content []byte) (*pa
 		SetResult(page{}).
 		Put("/api/pages/" + strconv.Itoa(pageID))
 	if err != nil || resp.StatusCode() > 399 {
-		return nil, fmt.Errorf("update page: %w", err)
+		return nil, fmt.Errorf("update page: %s", resp)
 	}
 	return resp.Result().(*page), nil
 }

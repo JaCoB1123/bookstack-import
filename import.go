@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io/fs"
 	"io/ioutil"
 	"log"
@@ -59,18 +60,20 @@ func (imp *bookstackImport) GetBook(name string) *book {
 	}
 
 	existingBook, ok := imp.Books.Get(book.String())
-	if !ok {
-		log.Println("Creating new book", name)
-		newBook, err := imp.Client.CreateBook(name)
-		if err != nil {
-			log.Fatal(err)
-			return nil
-		}
-
-		imp.Books.Set(newBook.String(), newBook)
-		log.Println("New book:", newBook)
+	if ok {
+		return existingBook
 	}
-	return existingBook
+
+	log.Println("Creating new book", name)
+	newBook, err := imp.Client.CreateBook(name)
+	if err != nil {
+		log.Fatal(err)
+		return nil
+	}
+
+	imp.Books.Set(newBook.String(), newBook)
+	log.Println("New book:", newBook)
+	return newBook
 }
 
 func (imp *bookstackImport) GetChapter(name string, bookID int) *chapter {
@@ -80,19 +83,20 @@ func (imp *bookstackImport) GetChapter(name string, bookID int) *chapter {
 	}
 
 	existingChapter, ok := imp.Chapters.Get(chapter.String())
-	if !ok {
-		log.Println("Creating new chapter", name)
-		newChapter, err := imp.Client.CreateChapter(bookID, name)
-		if err != nil {
-			log.Fatal(err)
-			return nil
-		}
-
-		imp.Chapters.Set(newChapter.String(), newChapter)
-		log.Println("New chapter:", newChapter)
+	if ok {
+		return existingChapter
 	}
 
-	return existingChapter
+	log.Println("Creating new chapter", name)
+	newChapter, err := imp.Client.CreateChapter(bookID, name)
+	if err != nil {
+		log.Fatal(err)
+		return nil
+	}
+
+	imp.Chapters.Set(newChapter.String(), newChapter)
+	log.Println("New chapter:", newChapter)
+	return newChapter
 }
 
 func (imp *bookstackImport) GetPage(name string, chapterID int, content []byte) *page {
@@ -115,7 +119,7 @@ func (imp *bookstackImport) GetPage(name string, chapterID int, content []byte) 
 
 	page, err := imp.Client.UpdatePageContent(existingPage.ID, content)
 	if err != nil {
-		log.Printf("could not update page %d: %s\n", page.ID, err)
+		log.Printf("could not update page %d: %s\n", existingPage.ID, err)
 		return nil
 	}
 	imp.Pages.Set(page.String(), page)
@@ -151,7 +155,7 @@ func (imp *bookstackImport) ImportFolder(importPath string) error {
 			return err
 		}
 
-		go imp.GetPage(pageName, chapter.ID, content)
+		imp.GetPage(pageName, chapter.ID, content)
 		return nil
 	})
 }
