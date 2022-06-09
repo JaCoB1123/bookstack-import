@@ -34,10 +34,9 @@ func (client bookStackClient) GetPages() (*pagesResponse, error) {
 	return resp.Result().(*pagesResponse), nil
 }
 
-func (client bookStackClient) CreatePage(bookID, chapterID int, name string, content []byte) (*page, error) {
+func (client bookStackClient) CreatePage(chapterID int, name string, content []byte) (*page, error) {
 	resp, err := client.R().
 		SetBody(page{
-			BookID:    bookID,
 			ChapterID: chapterID,
 			Name:      name,
 			Markdown:  string(content)}).
