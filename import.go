@@ -133,7 +133,7 @@ func (imp *bookstackImport) ImportFolder(importPath string) error {
 			return err
 		}
 
-		imp.GetPage(pageName, book.ID, chapter.ID, content)
+		go imp.GetPage(pageName, chapter.ID, content)
 		return nil
 	})
 }
