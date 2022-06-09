@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"strconv"
+)
 
 type chaptersResponse struct {
 	Data []chapter `json:"data"`
@@ -12,6 +15,10 @@ type chapter struct {
 	Name        string `json:"name"`
 	Slug        string `json:"slug"`
 	Description string `json:"description"`
+}
+
+func (c chapter) String() string {
+	return strconv.Itoa(c.BookID) + ": " + c.Name
 }
 
 func (client bookStackClient) GetChapters() (*chaptersResponse, error) {

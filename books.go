@@ -13,6 +13,10 @@ type book struct {
 	Description string `json:"description"`
 }
 
+func (b book) String() string {
+	return b.Name
+}
+
 func (client bookStackClient) GetBooks() (*booksResponse, error) {
 	resp, err := client.R().
 		SetResult(booksResponse{}).

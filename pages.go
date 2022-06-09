@@ -19,6 +19,10 @@ type page struct {
 	Markdown    string `json:"markdown"`
 }
 
+func (p page) String() string {
+	return strconv.Itoa(p.ChapterID) + ": " + p.Name
+}
+
 func (client bookStackClient) GetPages() (*pagesResponse, error) {
 	resp, err := client.R().
 		SetResult(pagesResponse{}).
