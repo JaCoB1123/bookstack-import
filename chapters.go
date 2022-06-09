@@ -25,7 +25,7 @@ func (client bookStackClient) GetChapters() (*chaptersResponse, error) {
 	resp, err := client.R().
 		SetResult(chaptersResponse{}).
 		Get("/api/chapters")
-	if err != nil {
+	if err != nil || resp.StatusCode() > 399 {
 		return nil, fmt.Errorf("get of chapters: %w", err)
 	}
 
@@ -39,7 +39,7 @@ func (client bookStackClient) CreateChapter(bookID int, name string) (*chapter, 
 			Name:   name}).
 		SetResult(chapter{}).
 		Post("/api/chapters")
-	if err != nil {
+	if err != nil || resp.StatusCode() > 399 {
 		return nil, fmt.Errorf("create chapter: %w", err)
 	}
 	return resp.Result().(*chapter), nil

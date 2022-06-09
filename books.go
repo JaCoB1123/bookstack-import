@@ -21,7 +21,7 @@ func (client bookStackClient) GetBooks() (*booksResponse, error) {
 	resp, err := client.R().
 		SetResult(booksResponse{}).
 		Get("/api/books")
-	if err != nil {
+	if err != nil || resp.StatusCode() > 399 {
 		return nil, fmt.Errorf("get of books: %w", err)
 	}
 
@@ -33,7 +33,7 @@ func (client bookStackClient) CreateBook(name string) (*book, error) {
 		SetBody(book{Name: name}).
 		SetResult(book{}).
 		Post("/api/books")
-	if err != nil {
+	if err != nil || resp.StatusCode() > 399 {
 		return nil, fmt.Errorf("create book: %w", err)
 	}
 	return resp.Result().(*book), nil
