@@ -147,6 +147,7 @@ func (imp *bookstackImport) ImportFolder(importPath string) error {
 		segments := strings.FieldsFunc(path, IsDirSeparator)
 
 		book := imp.GetBook(segments[0])
+		fmt.Printf("Found book: %d %s\n", book.ID, book.Name)
 		chapter := imp.GetChapter(segments[1], book.ID)
 		pageName := strings.Join(segments[2:], "/")
 
