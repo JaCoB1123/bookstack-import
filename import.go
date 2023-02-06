@@ -156,7 +156,59 @@ func (imp *bookstackImport) ImportFolder(importPath string) error {
 			return err
 		}
 
+		ReplaceAllImages(content)
+
 		imp.GetPage(pageName, chapter.ID, content)
 		return nil
 	})
+}
+
+func ReplaceAllImages(content []byte) {
+	for i := 0; i < len(content); i++ {
+		if content[i] != '!' {
+			continue
+		}
+
+		bracketStart, bracketEnd := FindNext(content, i+1, '[', ']')
+		if bracketEnd == -1 {
+			continue
+		}
+
+		parenthesisStart, parenthesisEnd := FindNext(content, bracketEnd+1, '(', ')')
+		if parenthesisEnd == -1 {
+			continue
+		}
+
+		bracesStart, bracesEnd := FindNext(content, parenthesisEnd+1, '{', '}')
+		if parenthesisEnd == -1 {
+			continue
+		}
+
+		fmt.Println(i, bracketStart, bracketEnd, parenthesisStart, parenthesisEnd, bracesStart, bracesEnd)
+		//fmt.Println(string(content[i : parenthesisEnd+1]))
+		fmt.Printf("[]: %s\n", content[bracketStart+1:bracketEnd])
+		fmt.Printf("(): %s\n", content[parenthesisStart+1:parenthesisEnd])
+		fmt.Printf("{}: %s\n", content[bracesStart+1:bracesEnd])
+	}
+}
+
+func FindNext(content []byte, start int, nested byte, char byte) (int, int) {
+	if content[start] != nested {
+		return -1, -1
+	}
+
+	end := start + 1
+	nestedCount := 0
+	for ; end < len(content); end++ {
+		switch content[end] {
+		case nested:
+			nestedCount++
+		case char:
+			nestedCount--
+			if nestedCount < 0 {
+				return start, end
+			}
+		}
+	}
+	return -1, -1
 }
