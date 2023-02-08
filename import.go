@@ -5,7 +5,6 @@ import (
 	"io/fs"
 	"io/ioutil"
 	"log"
-	"os"
 	"path/filepath"
 	"strings"
 
@@ -189,7 +188,6 @@ func (imp *bookstackImport) ReplaceAllImages(pageID int, content []byte, path st
 			continue
 		}
 
-		os.WriteFile(fmt.Sprintf("C:\\temp\\notes\\%d-%d.md", pageID, i), content, fs.ModePerm)
 		name := content[bracketStart+1 : bracketEnd]
 		src := content[parenthesisStart+1 : parenthesisEnd]
 		path := filepath.Join(filepath.Dir(path), string(src))
