@@ -19,9 +19,9 @@ export BOOKSTACK_IMPORT_PATH=./
 
 ## Limitations
 
-Since Bookstack is limited to four hierarchy levels (shelves, books, chapters and pages) a 1:1 migration is not possible. We decided to no import shelves and start at books for the import. 
+Since Bookstack is limited to four hierarchy levels (shelves, books, chapters and pages) a 1:1 migration is not possible. We decided not to import shelves and start at books for the import.
 
 | Source file  | Imported as |
 |--------------|-------------|
 | Introduction.md | Book: Introduction |
-| More/Test.md | Chapter "More" in |
+| More/Test.md | Chapter "Test" in Book "More" |
