@@ -29,7 +29,8 @@ func NewImport(client *bookStackClient) *bookstackImport {
 	}
 	imp.Books = cache.New[string, *book]()
 	for _, book := range books.Data {
-		imp.Books.Set(book.String(), &book)
+		book2 := book
+		imp.Books.Set(book.String(), &book2)
 	}
 
 	chapters, err := client.GetChapters()
@@ -39,7 +40,8 @@ func NewImport(client *bookStackClient) *bookstackImport {
 	}
 	imp.Chapters = cache.New[string, *chapter]()
 	for _, chapter := range chapters.Data {
-		imp.Chapters.Set(chapter.String(), &chapter)
+		chapter2 := chapter
+		imp.Chapters.Set(chapter.String(), &chapter2)
 	}
 
 	pages, err := client.GetPages()
@@ -49,7 +51,8 @@ func NewImport(client *bookStackClient) *bookstackImport {
 	}
 	imp.Pages = cache.New[string, *page]()
 	for _, page := range pages.Data {
-		imp.Pages.Set(page.String(), &page)
+		page2 := page
+		imp.Pages.Set(page.String(), &page2)
 	}
 	return imp
 }
