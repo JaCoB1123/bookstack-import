@@ -198,8 +198,9 @@ func (imp *bookstackImport) ReplaceAllImages(pageID int, content []byte, path st
 
 		src = []byte(fmt.Sprintf("/attachments/%d", attachment.ID))
 		contentTail := content[parenthesisEnd+1:]
-		content = append(content[:i], []byte(fmt.Sprintf("![%s](%s)", name, src))...)
-		i = len(content)
+		newImage := []byte(fmt.Sprintf("![%s](%s)", name, src))
+		content = append(content[:i], newImage...)
+		i = len(newImage) + i - 1
 		content = append(content, contentTail...)
 	}
 
