@@ -159,14 +159,18 @@ func (imp *bookstackImport) ImportFolder(importPath string) error {
 			return err
 		}
 
-		ReplaceAllImages(content)
+		page := imp.GetPage(pageName, chapter.ID, content)
+		err = imp.ReplaceAllImages(page.ID, content, fullPath)
+		if err != nil {
+			return err
+		}
 
 		imp.GetPage(pageName, chapter.ID, content)
 		return nil
 	})
 }
 
-func ReplaceAllImages(content []byte) {
+func (imp *bookstackImport) ReplaceAllImages(pageID int, content []byte, path string) error {
 	for i := 0; i < len(content); i++ {
 		if content[i] != '!' {
 			continue
@@ -182,17 +186,23 @@ func ReplaceAllImages(content []byte) {
 			continue
 		}
 
-		bracesStart, bracesEnd := FindNext(content, parenthesisEnd+1, '{', '}')
-		if parenthesisEnd == -1 {
-			continue
+		os.WriteFile(fmt.Sprintf("C:\\temp\\notes\\%d-%d.md", pageID, i), content, fs.ModePerm)
+		name := content[bracketStart+1 : bracketEnd]
+		src := content[parenthesisStart+1 : parenthesisEnd]
+		path := filepath.Join(filepath.Dir(path), string(src))
+		attachment, err := imp.Client.UploadAttachment(pageID, string(name), path)
+		if err != nil {
+			return err
 		}
 
-		fmt.Println(i, bracketStart, bracketEnd, parenthesisStart, parenthesisEnd, bracesStart, bracesEnd)
-		//fmt.Println(string(content[i : parenthesisEnd+1]))
-		fmt.Printf("[]: %s\n", content[bracketStart+1:bracketEnd])
-		fmt.Printf("(): %s\n", content[parenthesisStart+1:parenthesisEnd])
-		fmt.Printf("{}: %s\n", content[bracesStart+1:bracesEnd])
+		src = []byte(fmt.Sprintf("/attachments/%d", attachment.ID))
+		contentTail := content[parenthesisEnd+1:]
+		content = append(content[:i], []byte(fmt.Sprintf("![%s](%s)", name, src))...)
+		i = len(content)
+		content = append(content, contentTail...)
 	}
+
+	return nil
 }
 
 func FindNext(content []byte, start int, nested byte, char byte) (int, int) {
