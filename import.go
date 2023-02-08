@@ -151,7 +151,6 @@ func (imp *bookstackImport) ImportFolder(importPath string) error {
 		segments := strings.FieldsFunc(path, IsDirSeparator)
 
 		book := imp.GetBook(segments[0])
-		fmt.Printf("Found book: %d %s\n", book.ID, book.Name)
 		chapter := imp.GetChapter(segments[1], book.ID)
 		pageName := strings.Join(segments[2:], "/")
 
@@ -165,6 +164,9 @@ func (imp *bookstackImport) ImportFolder(importPath string) error {
 		if err != nil {
 			return err
 		}
+
+		// TODO Replace all Embeds \<\<[.../...]\>\>
+		// TODO Replace all Links [text](url)
 
 		imp.GetPage(pageName, chapter.ID, content)
 		return nil
