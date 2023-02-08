@@ -160,7 +160,7 @@ func (imp *bookstackImport) ImportFolder(importPath string) error {
 		}
 
 		page := imp.GetPage(pageName, chapter.ID, content)
-		err = imp.ReplaceAllImages(page.ID, content, fullPath)
+		content, err = imp.ReplaceAllImages(page.ID, content, fullPath)
 		if err != nil {
 			return err
 		}
@@ -170,7 +170,7 @@ func (imp *bookstackImport) ImportFolder(importPath string) error {
 	})
 }
 
-func (imp *bookstackImport) ReplaceAllImages(pageID int, content []byte, path string) error {
+func (imp *bookstackImport) ReplaceAllImages(pageID int, content []byte, path string) ([]byte, error) {
 	for i := 0; i < len(content); i++ {
 		if content[i] != '!' {
 			continue
@@ -192,7 +192,7 @@ func (imp *bookstackImport) ReplaceAllImages(pageID int, content []byte, path st
 		path := filepath.Join(filepath.Dir(path), string(src))
 		attachment, err := imp.Client.UploadAttachment(pageID, string(name), path)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		src = []byte(fmt.Sprintf("/attachments/%d", attachment.ID))
@@ -202,7 +202,7 @@ func (imp *bookstackImport) ReplaceAllImages(pageID int, content []byte, path st
 		content = append(content, contentTail...)
 	}
 
-	return nil
+	return content, nil
 }
 
 func FindNext(content []byte, start int, nested byte, char byte) (int, int) {
