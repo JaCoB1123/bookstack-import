@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"io"
 	"mime/multipart"
-	"net/textproto"
 	"os"
+	"path/filepath"
 )
 
 type attachment struct {
@@ -23,17 +23,14 @@ func (client bookStackClient) UploadAttachment(pageID int, name string, path str
 	}
 	defer fd.Close()
 
+	// TODO check for existing attachment by hash
+
+	fileName := filepath.Base(fd.Name())
+
 	var buf bytes.Buffer
 	mw := multipart.NewWriter(&buf)
 
-	h := make(textproto.MIMEHeader)
-	h.Set("Content-Disposition",
-		fmt.Sprintf(`form-data; name="%s"; filename="%s"`,
-			"file", fd.Name()))
-	h.Set("Content-Type", "image/png")
-	filepart, err := mw.CreatePart(h)
-
-	//filepart, err := mw.CreateFormFile("file", fd.Name())
+	filepart, err := mw.CreateFormFile("file", fd.Name())
 	if err != nil {
 		return nil, fmt.Errorf("failed to create new form part: %w", err)
 	}
@@ -55,7 +52,7 @@ func (client bookStackClient) UploadAttachment(pageID int, name string, path str
 		return nil, fmt.Errorf("failed to create new form part: %w", err)
 	}
 
-	fmt.Fprintf(nameField, "%s", fd.Name())
+	fmt.Fprintf(nameField, "%s", fileName)
 
 	err = mw.Close()
 	if err != nil {
