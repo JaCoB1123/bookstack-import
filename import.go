@@ -102,6 +102,27 @@ func (imp *bookstackImport) GetChapter(name string, bookID int) *chapter {
 	return newChapter
 }
 
+func (imp *bookstackImport) GetPageID(name string, chapterID int) int {
+	page := &page{
+		ChapterID: chapterID,
+		Name:      name,
+	}
+
+	existingPage, ok := imp.Pages.Get(page.String())
+	if !ok {
+		log.Println("Creating new page", name)
+		newPage, err := imp.Client.CreatePage(chapterID, name, []byte{})
+		if err != nil {
+			return -1
+		}
+
+		imp.Pages.Set(newPage.String(), newPage)
+		return newPage.ID
+	}
+
+	return existingPage.ID
+}
+
 func (imp *bookstackImport) GetPage(name string, chapterID int, content []byte) *page {
 	page := &page{
 		ChapterID: chapterID,
@@ -120,6 +141,7 @@ func (imp *bookstackImport) GetPage(name string, chapterID int, content []byte) 
 		return newPage
 	}
 
+	log.Println("Updating existing page", existingPage.ID, name)
 	page, err := imp.Client.UpdatePageContent(existingPage.ID, content)
 	if err != nil {
 		log.Printf("could not update page %d: %s\n", existingPage.ID, err)
@@ -158,13 +180,13 @@ func (imp *bookstackImport) ImportFolder(importPath string) error {
 			return err
 		}
 
-		page := imp.GetPage(pageName, chapter.ID, content)
-		content, err = imp.ReplaceAllImages(page.ID, content, fullPath)
+		pageID := imp.GetPageID(pageName, chapter.ID)
+		content, err = imp.ReplaceAllImages(pageID, content, fullPath)
 		if err != nil {
 			return err
 		}
 
-		content, err = imp.ReplaceAllEmbeds(page.ID, content, fullPath)
+		content, err = imp.ReplaceAllEmbeds(pageID, content, fullPath)
 		if err != nil {
 			return err
 		}
