@@ -185,6 +185,9 @@ func (imp *bookstackImport) ImportFolder(importPath string) error {
 		headerSeparator := FindNextMultiChar(content, 0, '-', '-', '-')
 		content = content[headerSeparator+5:]
 
+		// Pfeile sind in OneNote mit WingDings formatiert, durch ASCII-Pfeile ersetzen
+		content = []byte(bytes.ReplaceAll(content, []byte("à"), []byte("->")))
+
 		pageID := imp.GetPageID(pageName, chapter.ID)
 		content, err = imp.ReplaceAllImages(pageID, content, fullPath)
 		if err != nil {
