@@ -103,7 +103,7 @@ func (imp *bookstackImport) GetChapter(name string, bookID int) *chapter {
 	return newChapter
 }
 
-func (imp *bookstackImport) GetPageID(name string, chapterID int) int {
+func (imp *bookstackImport) GetPageID(name string, chapterID int) (int, error) {
 	page := &page{
 		ChapterID: chapterID,
 		Name:      name,
@@ -112,16 +112,16 @@ func (imp *bookstackImport) GetPageID(name string, chapterID int) int {
 	existingPage, ok := imp.Pages.Get(page.String())
 	if !ok {
 		log.Println("Creating new page", name)
-		newPage, err := imp.Client.CreatePage(chapterID, name, []byte{})
+		newPage, err := imp.Client.CreatePage(chapterID, name, []byte("empty"))
 		if err != nil {
-			return -1
+			return -1, err
 		}
 
 		imp.Pages.Set(newPage.String(), newPage)
-		return newPage.ID
+		return newPage.ID, nil
 	}
 
-	return existingPage.ID
+	return existingPage.ID, nil
 }
 
 func (imp *bookstackImport) GetPage(name string, chapterID int, content []byte) *page {
@@ -188,7 +188,11 @@ func (imp *bookstackImport) ImportFolder(importPath string) error {
 		// Pfeile sind in OneNote mit WingDings formatiert, durch ASCII-Pfeile ersetzen
 		content = []byte(bytes.ReplaceAll(content, []byte("à"), []byte("->")))
 
-		pageID := imp.GetPageID(pageName, chapter.ID)
+		pageID, err := imp.GetPageID(pageName, chapter.ID)
+		if err != nil {
+			return err
+		}
+
 		content, err = imp.ReplaceAllImages(pageID, content, fullPath)
 		if err != nil {
 			return err
