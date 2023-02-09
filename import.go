@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"io/fs"
 	"io/ioutil"
@@ -179,6 +180,10 @@ func (imp *bookstackImport) ImportFolder(importPath string) error {
 		if err != nil {
 			return err
 		}
+
+		// Header entfernen
+		headerSeparator := FindNextMultiChar(content, 0, '-', '-', '-')
+		content = content[headerSeparator+5:]
 
 		pageID := imp.GetPageID(pageName, chapter.ID)
 		content, err = imp.ReplaceAllImages(pageID, content, fullPath)
