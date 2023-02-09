@@ -164,7 +164,11 @@ func (imp *bookstackImport) ImportFolder(importPath string) error {
 			return err
 		}
 
-		// TODO Replace all Embeds \<\<[.../...]\>\>
+		content, err = imp.ReplaceAllEmbeds(page.ID, content, fullPath)
+		if err != nil {
+			return err
+		}
+
 		// TODO Replace all Links [text](url)
 
 		imp.GetPage(pageName, chapter.ID, content)
@@ -207,6 +211,50 @@ func (imp *bookstackImport) ReplaceAllImages(pageID int, content []byte, path st
 	return content, nil
 }
 
+func (imp *bookstackImport) ReplaceAllEmbeds(pageID int, content []byte, path string) ([]byte, error) {
+	for i := 0; i < len(content); i++ {
+		if content[i] != '\\' || content[i+1] != '<' {
+			continue
+		}
+
+		if content[i+2] != '\\' || content[i+3] != '<' {
+			continue
+		}
+
+		firstClosing := FindNextMultiChar(content, i+3, '\\', '>', '\\', '>')
+		if firstClosing == -1 {
+			continue
+		}
+
+		bracketStart, bracketEnd := FindNext(content, i+4, '[', ']')
+		if bracketEnd == -1 {
+			continue
+		}
+
+		parenthesisStart, parenthesisEnd := FindNext(content, bracketEnd+1, '(', ')')
+		if parenthesisEnd == -1 {
+			continue
+		}
+
+		name := content[bracketStart+1 : bracketEnd]
+		src := content[parenthesisStart+1 : parenthesisEnd]
+		path := filepath.Join(filepath.Dir(path), string(src))
+		attachment, err := imp.Client.UploadAttachment(pageID, string(name), path)
+		if err != nil {
+			return nil, err
+		}
+
+		src = []byte(fmt.Sprintf("/attachments/%d", attachment.ID))
+		contentTail := content[parenthesisEnd+5:]
+		newImage := []byte(fmt.Sprintf("[%s](%s)", name, src))
+		content = append(content[:i], newImage...)
+		i = len(newImage) + i - 1
+		content = append(content, contentTail...)
+	}
+
+	return content, nil
+}
+
 func FindNext(content []byte, start int, nested byte, char byte) (int, int) {
 	if content[start] != nested {
 		return -1, -1
@@ -226,4 +274,19 @@ func FindNext(content []byte, start int, nested byte, char byte) (int, int) {
 		}
 	}
 	return -1, -1
+}
+
+func FindNextMultiChar(content []byte, start int, chars ...byte) int {
+	end := start + 1
+	for ; end < len(content); end++ {
+		switch content[end] {
+		case chars[0]:
+			for i := 1; i < len(chars); i++ {
+				if content[end+i] == chars[i] {
+					return end + i
+				}
+			}
+		}
+	}
+	return -1
 }
