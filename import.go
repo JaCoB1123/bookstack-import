@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	cache "github.com/Code-Hex/go-generics-cache"
@@ -231,10 +232,13 @@ func (imp *bookstackImport) ReplaceAllInternalLinks(pageID int, content []byte, 
 		}
 
 		//name := content[bracketStart+1 : bracketEnd]
-		src := content[parenthesisStart+1 : parenthesisEnd]
+		src, err := strconv.Unquote("\"" + string(content[parenthesisStart+1:parenthesisEnd]) + "\"")
+		if err != nil {
+			return nil, err
+		}
 
 		if strings.HasPrefix(string(src), "onenote:") {
-			log.Println("Found onenote link", string(src))
+			log.Println("Found onenote link", src)
 		}
 	}
 
@@ -257,14 +261,17 @@ func (imp *bookstackImport) ReplaceAllImages(pageID int, content []byte, path st
 		}
 
 		name := content[bracketStart+1 : bracketEnd]
-		src := content[parenthesisStart+1 : parenthesisEnd]
-		path := filepath.Join(filepath.Dir(path), string(src))
+		src, err := strconv.Unquote("\"" + string(content[parenthesisStart+1:parenthesisEnd]) + "\"")
+		if err != nil {
+			return nil, err
+		}
+		path := filepath.Join(filepath.Dir(path), src)
 		attachment, err := imp.Client.UploadAttachment(pageID, string(name), path)
 		if err != nil {
 			return nil, err
 		}
 
-		src = []byte(fmt.Sprintf("/attachments/%d", attachment.ID))
+		src = fmt.Sprintf("/attachments/%d", attachment.ID)
 		contentTail := content[parenthesisEnd+1:]
 		newImage := []byte(fmt.Sprintf("![%s](%s)", name, src))
 		content = append(content[:i], newImage...)
@@ -301,14 +308,17 @@ func (imp *bookstackImport) ReplaceAllEmbeds(pageID int, content []byte, path st
 		}
 
 		name := content[bracketStart+1 : bracketEnd]
-		src := content[parenthesisStart+1 : parenthesisEnd]
+		src, err := strconv.Unquote("\"" + string(content[parenthesisStart+1:parenthesisEnd]) + "\"")
+		if err != nil {
+			return nil, err
+		}
 		path := filepath.Join(filepath.Dir(path), string(src))
 		attachment, err := imp.Client.UploadAttachment(pageID, string(name), path)
 		if err != nil {
 			return nil, err
 		}
 
-		src = []byte(fmt.Sprintf("/attachments/%d", attachment.ID))
+		src = fmt.Sprintf("/attachments/%d", attachment.ID)
 		contentTail := content[parenthesisEnd+5:]
 		newImage := []byte(fmt.Sprintf("[%s](%s)", name, src))
 		content = append(content[:i], newImage...)
