@@ -203,13 +203,43 @@ func (imp *bookstackImport) ImportFolder(importPath string) error {
 			return err
 		}
 
-		// TODO Replace all Links [text](url)
+		content, err = imp.ReplaceAllInternalLinks(pageID, content, fullPath)
+		if err != nil {
+			return err
+		}
 
 		imp.GetPage(pageName, chapter.ID, content)
 		return nil
 	})
 }
 
+func (imp *bookstackImport) ReplaceAllInternalLinks(pageID int, content []byte, path string) ([]byte, error) {
+	// TODO Implement
+	for i := 0; i < len(content); i++ {
+		if content[i] != '[' {
+			continue
+		}
+
+		_, bracketEnd := FindNext(content, i, '[', ']')
+		if bracketEnd == -1 {
+			continue
+		}
+
+		parenthesisStart, parenthesisEnd := FindNext(content, bracketEnd+1, '(', ')')
+		if parenthesisEnd == -1 {
+			continue
+		}
+
+		//name := content[bracketStart+1 : bracketEnd]
+		src := content[parenthesisStart+1 : parenthesisEnd]
+
+		if strings.HasPrefix(string(src), "onenote:") {
+			log.Println("Found onenote link", string(src))
+		}
+	}
+
+	return content, nil
+}
 func (imp *bookstackImport) ReplaceAllImages(pageID int, content []byte, path string) ([]byte, error) {
 	for i := 0; i < len(content); i++ {
 		if content[i] != '!' {
@@ -289,6 +319,28 @@ func (imp *bookstackImport) ReplaceAllEmbeds(pageID int, content []byte, path st
 	return content, nil
 }
 
+func FindNextAnywhere(content []byte, start int, nested byte, char byte) (int, int) {
+	for ; start < len(content)-1; start++ {
+		if content[start] != nested {
+			continue
+		}
+
+		end := start + 1
+		nestedCount := 0
+		for ; end < len(content); end++ {
+			switch content[end] {
+			case nested:
+				nestedCount++
+			case char:
+				nestedCount--
+				if nestedCount < 0 {
+					return start, end
+				}
+			}
+		}
+	}
+	return -1, -1
+}
 func FindNext(content []byte, start int, nested byte, char byte) (int, int) {
 	if content[start] != nested {
 		return -1, -1
