@@ -232,10 +232,7 @@ func (imp *bookstackImport) ReplaceAllInternalLinks(pageID int, content []byte, 
 		}
 
 		//name := content[bracketStart+1 : bracketEnd]
-		src, err := strconv.Unquote("\"" + string(content[parenthesisStart+1:parenthesisEnd]) + "\"")
-		if err != nil {
-			return nil, fmt.Errorf("unquote: %w", err)
-		}
+		src := SafeUnquote("\"" + string(content[parenthesisStart+1:parenthesisEnd]) + "\"")
 
 		if strings.HasPrefix(string(src), "onenote:") {
 			log.Println("Found onenote link", src)
@@ -244,6 +241,17 @@ func (imp *bookstackImport) ReplaceAllInternalLinks(pageID int, content []byte, 
 
 	return content, nil
 }
+
+func SafeUnquote(text string) string {
+	unquoted, err := strconv.Unquote("\"" + text + "\"")
+	if err != nil {
+		log.Printf("unquote failed for: '%s': %s", text, err)
+		return text
+	}
+
+	return unquoted
+}
+
 func (imp *bookstackImport) ReplaceAllImages(pageID int, content []byte, path string) ([]byte, error) {
 	for i := 0; i < len(content); i++ {
 		if content[i] != '!' {
@@ -261,10 +269,7 @@ func (imp *bookstackImport) ReplaceAllImages(pageID int, content []byte, path st
 		}
 
 		name := content[bracketStart+1 : bracketEnd]
-		src, err := strconv.Unquote("\"" + string(content[parenthesisStart+1:parenthesisEnd]) + "\"")
-		if err != nil {
-			return nil, fmt.Errorf("unquote: %w", err)
-		}
+		src := SafeUnquote("\"" + string(content[parenthesisStart+1:parenthesisEnd]) + "\"")
 		path := filepath.Join(filepath.Dir(path), src)
 		attachment, err := imp.Client.UploadAttachment(pageID, string(name), path)
 		if err != nil {
@@ -308,10 +313,7 @@ func (imp *bookstackImport) ReplaceAllEmbeds(pageID int, content []byte, path st
 		}
 
 		name := content[bracketStart+1 : bracketEnd]
-		src, err := strconv.Unquote("\"" + string(content[parenthesisStart+1:parenthesisEnd]) + "\"")
-		if err != nil {
-			return nil, fmt.Errorf("unquote: %w", err)
-		}
+		src := SafeUnquote("\"" + string(content[parenthesisStart+1:parenthesisEnd]) + "\"")
 		path := filepath.Join(filepath.Dir(path), string(src))
 		attachment, err := imp.Client.UploadAttachment(pageID, string(name), path)
 		if err != nil {
