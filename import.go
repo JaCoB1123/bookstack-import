@@ -115,7 +115,7 @@ func (imp *bookstackImport) GetPageID(name string, chapterID int) (int, error) {
 		log.Println("Creating new page", name)
 		newPage, err := imp.Client.CreatePage(chapterID, name, []byte("empty"))
 		if err != nil {
-			return -1, err
+			return -1, fmt.Errorf("create page: %w", err)
 		}
 
 		imp.Pages.Set(newPage.String(), newPage)
@@ -179,7 +179,7 @@ func (imp *bookstackImport) ImportFolder(importPath string) error {
 
 		content, err := ioutil.ReadFile(fullPath)
 		if err != nil {
-			return err
+			return fmt.Errorf("read file: %w", err)
 		}
 
 		// Header entfernen
@@ -191,22 +191,22 @@ func (imp *bookstackImport) ImportFolder(importPath string) error {
 
 		pageID, err := imp.GetPageID(pageName, chapter.ID)
 		if err != nil {
-			return err
+			return fmt.Errorf("get page ID: %w", err)
 		}
 
 		content, err = imp.ReplaceAllImages(pageID, content, fullPath)
 		if err != nil {
-			return err
+			return fmt.Errorf("replace images: %w", err)
 		}
 
 		content, err = imp.ReplaceAllEmbeds(pageID, content, fullPath)
 		if err != nil {
-			return err
+			return fmt.Errorf("replace embeds: %w", err)
 		}
 
 		content, err = imp.ReplaceAllInternalLinks(pageID, content, fullPath)
 		if err != nil {
-			return err
+			return fmt.Errorf("replace internal links: %w", err)
 		}
 
 		imp.GetPage(pageName, chapter.ID, content)
@@ -234,7 +234,7 @@ func (imp *bookstackImport) ReplaceAllInternalLinks(pageID int, content []byte, 
 		//name := content[bracketStart+1 : bracketEnd]
 		src, err := strconv.Unquote("\"" + string(content[parenthesisStart+1:parenthesisEnd]) + "\"")
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("unquote: %w", err)
 		}
 
 		if strings.HasPrefix(string(src), "onenote:") {
@@ -263,12 +263,12 @@ func (imp *bookstackImport) ReplaceAllImages(pageID int, content []byte, path st
 		name := content[bracketStart+1 : bracketEnd]
 		src, err := strconv.Unquote("\"" + string(content[parenthesisStart+1:parenthesisEnd]) + "\"")
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("unquote: %w", err)
 		}
 		path := filepath.Join(filepath.Dir(path), src)
 		attachment, err := imp.Client.UploadAttachment(pageID, string(name), path)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("upload attachment: %w", err)
 		}
 
 		src = fmt.Sprintf("/attachments/%d", attachment.ID)
@@ -310,12 +310,12 @@ func (imp *bookstackImport) ReplaceAllEmbeds(pageID int, content []byte, path st
 		name := content[bracketStart+1 : bracketEnd]
 		src, err := strconv.Unquote("\"" + string(content[parenthesisStart+1:parenthesisEnd]) + "\"")
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("unquote: %w", err)
 		}
 		path := filepath.Join(filepath.Dir(path), string(src))
 		attachment, err := imp.Client.UploadAttachment(pageID, string(name), path)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("upload attachment: %w", err)
 		}
 
 		src = fmt.Sprintf("/attachments/%d", attachment.ID)
