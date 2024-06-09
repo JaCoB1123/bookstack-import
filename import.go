@@ -243,7 +243,7 @@ func (imp *bookstackImport) ReplaceAllInternalLinks(pageID int, content []byte, 
 }
 
 func SafeUnquote(text string) string {
-	unquoted, err := strconv.Unquote("\"" + text + "\"")
+	unquoted, err := strconv.Unquote(text)
 	if err != nil {
 		log.Printf("unquote failed for: '%s': %s", text, err)
 		return text
