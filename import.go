@@ -271,12 +271,12 @@ func (imp *bookstackImport) ReplaceAllImages(pageID int, content []byte, path st
 		name := content[bracketStart+1 : bracketEnd]
 		src := SafeUnquote("\"" + string(content[parenthesisStart+1:parenthesisEnd]) + "\"")
 		path := filepath.Join(filepath.Dir(path), src)
-		attachment, err := imp.Client.UploadAttachment(pageID, string(name), path)
+		image, err := imp.Client.UploadImage(pageID, string(name), path)
 		if err != nil {
-			return nil, fmt.Errorf("upload attachment: %w", err)
+			return nil, fmt.Errorf("uploadimage: %w", err)
 		}
 
-		src = fmt.Sprintf("/attachments/%d", attachment.ID)
+		src = image.Path
 		contentTail := content[parenthesisEnd+1:]
 		newImage := []byte(fmt.Sprintf("![%s](%s)", filepath.Base(src), src))
 		content = append(content[:i], newImage...)
