@@ -80,7 +80,7 @@ type image struct {
 func (client bookStackClient) UploadImage(pageID int, name string, path string) (*image, error) {
 	fd, err := os.Open(path)
 	if err != nil {
-		return nil, fmt.Errorf("open file: %w", err)
+		return nil, fmt.Errorf("open file '%s': %w", path, err)
 	}
 	defer fd.Close()
 
